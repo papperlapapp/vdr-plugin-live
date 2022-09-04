@@ -15,8 +15,6 @@
 
 namespace vdrlive {
 
-using std::for_each;
-using std::tr1::bind;
 using namespace std::tr1::placeholders;
 
 const char* NowReplaying()
@@ -245,8 +243,8 @@ void TaskManager::DoScheduledTasks()
 		return;
 
 	cMutexLock lock( this );
-	for_each( m_taskQueue.begin(), m_taskQueue.end(), bind( &Task::Action, _1 ) );
-	for_each( m_stickyTasks.begin(), m_stickyTasks.end(), bind( &Task::Action, _1 ) );
+	for (auto& task : m_taskQueue) { task->Action(); }
+	for (auto& task : m_stickyTasks) { task->Action(); }
 	m_taskQueue.clear();
 	m_scheduleWait.Broadcast();
 }
