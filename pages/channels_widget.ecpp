@@ -2,10 +2,11 @@
 
 #include <exception.h>
 #include <setup.h>
-
 #if VDRVERSNUM < 20300
 #include <tools.h>  // ReadLock
 #endif
+
+#include <list>
 
 using namespace vdrlive;
 
@@ -32,6 +33,7 @@ if (!logged_in && LiveSetup().UseAuth()) return reply.redirect("login.html");
 #endif
 </%cpp>
 <select name="<$ name $>" id="<$ name $>" <{ reply.out() << ( !onchange.empty() ? "onchange=\""+onchange+"\"" : "" ); }>>
+%std::list<const cChannel*> sortedChannels;
 %#if VDRVERSNUM >= 20301
 %	for ( cChannel *listChannel = (cChannel *)Channels->First(); listChannel; listChannel = (cChannel *)Channels->Next( listChannel ) ) {
 %#else
@@ -39,9 +41,12 @@ if (!logged_in && LiveSetup().UseAuth()) return reply.redirect("login.html");
 %#endif
 %		if ( listChannel->GroupSep() || *listChannel->Name() == '\0' )
 %			continue;
-%
+%		sortedChannels.pushBack(listChannel);
+%	}
+%	sortedChannels.sort([](const cChannel*& a, const cChannel*& b){return strcmp(a->Name(), b->Name()) < 0;});
+%	for (auto* listChannel : sortedChannels) {
 %		std::string listChannelId = *listChannel->GetChannelID().ToString();
-		<option value="<? channelid ? *listChannel->GetChannelID().ToString() ?><? !channelid ? listChannel->Number() ?>" 
+		<option value="<? channelid ? *listChannel->GetChannelID().ToString() ?><? !channelid ? listChannel->Number() ?>"
 			<{ reply.out() << ( listChannelId == selected ? "selected=\"selected\"" : "" ); }>><$ listChannel->Name() $></option>
 %	}
 </select>
